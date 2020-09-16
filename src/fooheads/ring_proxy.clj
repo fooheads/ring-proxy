@@ -36,20 +36,24 @@
                              (.getAuthority rmt-full)
                              (.getPath      rmt-full) nil nil)
             lcl-path   (:uri req)
-            remote-uri (.resolve rmt-path lcl-path)]
-        (-> (merge {:method (:request-method req)
-                    :url (str remote-uri "?" (:query-string req))
-                    :headers (merge (dissoc (:headers req) "host" "content-length") {"referer" remote-uri})
-                    ;:body (if-let [len (get-in req [:headers "content-length"])]
-                    ;        (slurp-binary (:body req) (Integer/parseInt len))
-                    :body (:body req)
-                    :follow-redirects true
-                    :throw-exceptions false
-                    :as :stream
-                    :connection-manager cm
-                    :http-client hclient} http-opts)
-            client/request
-            ;prepare-cookies
-            fix-headers)))))
+            remote-uri (str (.resolve rmt-path lcl-path))
+            query-string (:query-string req)
+            url (if query-string (str remote-uri "?" query-string) remote-uri)
+            request (merge {:method (:request-method req)
+                            :url url
+                            :headers (merge (dissoc (:headers req) "host" "content-length") {"referer" remote-uri})
+                            ;:body (if-let [len (get-in req [:headers "content-length"])]
+                            ;        (slurp-binary (:body req) (Integer/parseInt len))
+                            :body (:body req)
+                            :follow-redirects true
+                            :throw-exceptions false
+                            :as :stream
+                            :connection-manager cm
+                            :http-client hclient} http-opts)]
+        (->
+          request
+          client/request
+          ;prepare-cookies
+          fix-headers)))))
 
 
