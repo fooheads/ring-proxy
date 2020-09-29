@@ -28,7 +28,11 @@
 
 (defn proxy-handler [remote-base-uri & [http-opts]]
   (let [cm (conn/make-reusable-conn-manager {:threads 10 :default-per-route 10})
-        hclient (core/build-http-client {} false cm)]
+        hclient (core/build-http-client
+                  {:max-redirects 0
+                   :redirect-strategy :none}
+
+                  false cm)]
 
     (fn [req]
       (let [rmt-full   (URI. (str remote-base-uri "/"))
@@ -42,11 +46,8 @@
             request (merge {:method (:request-method req)
                             :url url
                             :headers (merge (dissoc (:headers req) "host" "content-length") {"referer" remote-uri})
-                            ;:body (if-let [len (get-in req [:headers "content-length"])]
-                            ;        (slurp-binary (:body req) (Integer/parseInt len))
-                            :body (:body req)
-                            :follow-redirects true
                             :throw-exceptions false
+                            :body (:body req)
                             :as :stream
                             :connection-manager cm
                             :http-client hclient} http-opts)]
