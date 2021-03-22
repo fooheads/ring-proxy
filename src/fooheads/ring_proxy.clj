@@ -6,6 +6,7 @@
   (:import
       [java.net URI]))
 
+
 (defn prepare-cookies
   "Removes the :domain and :secure keys and converts the :expires key (a Date)
   to a string in the ring response map resp. Returns resp with cookies properly
@@ -15,8 +16,10 @@
                      (update-in [1] dissoc :domain :secure))]
     (assoc resp :cookies (into {} (map prepare (:cookies resp))))))
 
+
 (defn fix-headers [resp]
   (update resp :headers dissoc "Transfer-Encoding"))
+
 
 (defn slurp-binary
   "Reads len bytes from InputStream is and returns a byte array."
@@ -26,12 +29,11 @@
       (.read rdr buf)
       buf)))
 
-(defn proxy-handler [remote-base-uri & [http-opts]]
-  (let [cm (conn/make-reusable-conn-manager {:threads 10 :default-per-route 10})
-        hclient (core/build-http-client
-                  {:max-redirects 0
-                   :redirect-strategy :none}
 
+(defn proxy-handler [remote-base-uri conn-opts & [http-opts]]
+  (let [cm (conn/make-reusable-conn-manager conn-opts)
+        hclient (core/build-http-client
+                  {:max-redirects 0 :redirect-strategy :none}
                   false cm)]
 
     (fn [req]
@@ -56,5 +58,4 @@
           client/request
           ;prepare-cookies
           fix-headers)))))
-
 
