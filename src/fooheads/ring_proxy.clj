@@ -45,14 +45,24 @@
             remote-uri (str (.resolve rmt-path lcl-path))
             query-string (:query-string req)
             url (if query-string (str remote-uri "?" query-string) remote-uri)
-            request (merge {:method (:request-method req)
-                            :url url
-                            :headers (merge (dissoc (:headers req) "host" "content-length") {"referer" remote-uri})
-                            :throw-exceptions false
-                            :body (:body req)
-                            :as :stream
-                            :connection-manager cm
-                            :http-client hclient} http-opts)]
+
+            request
+            (merge
+              {:method (:request-method req)
+               :url url
+
+               :headers
+               (merge
+                 (dissoc (:headers req)
+                         "host"
+                         "content-length")
+                 {"referer" remote-uri})
+
+               :throw-exceptions false
+               :body (:body req)
+               :as :stream
+               :connection-manager cm
+               :http-client hclient} http-opts)]
         (->
           request
           client/request
