@@ -55,7 +55,8 @@
                (merge
                  (dissoc (:headers req)
                          "host"
-                         "content-length")
+                         "content-length"
+                         "transfer-encoding")
                  {"referer" remote-uri})
 
                :throw-exceptions false
