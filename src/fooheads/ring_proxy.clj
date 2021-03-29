@@ -2,7 +2,8 @@
   (:require
     [clj-http.client :as client]
     [clj-http.conn-mgr :as conn]
-    [clj-http.core :as core])
+    [clj-http.core :as core]
+    [ring.util.request :refer [body-string]])
   (:import
       [java.net URI]))
 
@@ -46,6 +47,8 @@
             query-string (:query-string req)
             url (if query-string (str remote-uri "?" query-string) remote-uri)
 
+            body (body-string req)
+
             request
             (merge
               {:method (:request-method req)
@@ -60,7 +63,7 @@
                  {"referer" remote-uri})
 
                :throw-exceptions false
-               :body (:body req)
+               :body body
                :as :stream
                :connection-manager cm
                :http-client hclient} http-opts)]
