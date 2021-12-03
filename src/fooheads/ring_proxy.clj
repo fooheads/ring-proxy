@@ -43,7 +43,8 @@
                              (.getAuthority rmt-full)
                              (.getPath      rmt-full) nil nil)
             lcl-path   (:uri req)
-            remote-uri (str (.resolve rmt-path lcl-path))
+            remote-uri (str (.resolve ^java.net.URI rmt-path
+                                      ^String lcl-path))
             query-string (:query-string req)
             url (if query-string (str remote-uri "?" query-string) remote-uri)
 
