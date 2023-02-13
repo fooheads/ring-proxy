@@ -3,6 +3,7 @@
     [clj-http.client :as client]
     [clj-http.conn-mgr :as conn]
     [clj-http.core :as core]
+    [clojure.string :as str]
     [ring.util.request :refer [body-string]])
   (:import
       [java.net URI]))
@@ -31,6 +32,12 @@
       buf)))
 
 
+(defn- map-keys
+  "Apply f to all keys in m"
+  [f m]
+  (reduce-kv (fn [m k v] (assoc m (f k) v)) {} m))
+
+
 (defn proxy-handler [remote-base-uri conn-opts & [http-opts]]
   (let [cm (conn/make-reusable-conn-manager conn-opts)
         hclient (core/build-http-client
@@ -57,7 +64,7 @@
 
                :headers
                (merge
-                 (dissoc (:headers req)
+                 (dissoc (map-keys str/lower-case (:headers req))
                          "host"
                          "content-length"
                          "transfer-encoding")
