@@ -9,6 +9,12 @@
       [java.net URI]))
 
 
+(defn- map-keys
+  "Apply f to all keys in m"
+  [f m]
+  (reduce-kv (fn [m k v] (assoc m (f k) v)) {} m))
+
+
 (defn prepare-cookies
   "Removes the :domain and :secure keys and converts the :expires key (a Date)
   to a string in the ring response map resp. Returns resp with cookies properly
@@ -19,8 +25,15 @@
     (assoc resp :cookies (into {} (map prepare (:cookies resp))))))
 
 
-(defn fix-headers [resp]
-  (update resp :headers dissoc "Transfer-Encoding"))
+(defn- fix-headers
+  "Remove the content-length header from the response.
+  That header seems to be broken depending on whether the
+  response is chunked or not."
+  [resp]
+  (update resp :headers (fn [headers]
+                          (->
+                            (map-keys str/lower-case headers)
+                            (dissoc "content-length")))))
 
 
 (defn slurp-binary
@@ -30,12 +43,6 @@
     (let [buf (byte-array len)]
       (.read rdr buf)
       buf)))
-
-
-(defn- map-keys
-  "Apply f to all keys in m"
-  [f m]
-  (reduce-kv (fn [m k v] (assoc m (f k) v)) {} m))
 
 
 (defn proxy-handler [remote-base-uri conn-opts & [http-opts]]
@@ -80,4 +87,9 @@
           client/request
           ;prepare-cookies
           fix-headers)))))
+
+(comment
+
+  (fix-headers {:body "hej" :headers {"CONTENT-LENGTH" 497
+                                      "Content-Type" "text/html"}}))
 
