@@ -33,7 +33,8 @@
   (update resp :headers (fn [headers]
                           (->
                             (map-keys str/lower-case headers)
-                            (dissoc "content-length")))))
+                            (dissoc "content-length"
+                                    "transfer-encoding")))))
 
 
 (defn slurp-binary
